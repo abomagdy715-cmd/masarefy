@@ -820,10 +820,7 @@ function renderTransactions() {
       <td><span class="tag ${t.type}">${t.type === 'buy' ? '🛒 شراء' : '💰 بيع'}</span></td>
       <td style="font-weight:600">${t.desc}</td>
       <td><span class="cat-badge">${t.cat}</span></td>
-      <td class="${t.type === 'buy' ? 'amount-buy' : 'amount-sell'}">
-        ${fmt(t.amount)} ر.س
-        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px">≈ ${fmt(t.amount * rates.EGP)} ج.م</div>
-      </td>
+      <td class="${t.type === 'buy' ? 'amount-buy' : 'amount-sell'}">${fmt(t.amount)} ر.س</td>
       <td style="color:var(--muted)">${t.rate}</td>
       <td style="color:var(--muted)">${t.qty}</td>
       <td style="color:var(--muted)">${fmtDate(t.date)}</td>
@@ -843,17 +840,14 @@ function renderSummary() {
     <div class="summary-card">
       <div class="summary-label">💸 إجمالي المصاريف</div>
       <div class="summary-value expense">${fmt(totalBuy)} ر.س</div>
-      <div style="font-size:0.8rem;color:var(--muted);margin-top:2px">≈ ${fmt(totalBuy * rates.EGP)} ج.م</div>
     </div>
     <div class="summary-card">
       <div class="summary-label">💰 إجمالي الإيرادات</div>
       <div class="summary-value income">${fmt(totalSell)} ر.س</div>
-      <div style="font-size:0.8rem;color:var(--muted);margin-top:2px">≈ ${fmt(totalSell * rates.EGP)} ج.م</div>
     </div>
     <div class="summary-card">
       <div class="summary-label">${net >= 0 ? '✅' : '⚠️'} الصافي</div>
       <div class="summary-value net" style="color:${net >= 0 ? 'var(--green)' : 'var(--red)'}">${net >= 0 ? '+' : '-'}${fmt(net)} ر.س</div>
-      <div style="font-size:0.8rem;color:var(--muted);margin-top:2px">≈ ${net >= 0 ? '+' : '-'}${fmt(Math.abs(net) * rates.EGP)} ج.م</div>
     </div>
     <div class="summary-card">
       <div class="summary-label">📝 عدد المعاملات</div>
