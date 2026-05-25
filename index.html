@@ -499,8 +499,9 @@
         <div class="form-group">
           <label>من</label>
           <select id="calcFrom" onchange="calcConvert()">
-            <option value="SAR">ريال سعودي (SAR)</option>
+            <option value="EGP">جنيه مصري (EGP)</option>
             <option value="USD">دولار (USD)</option>
+            <option value="SAR">ريال سعودي (SAR)</option>
             <option value="EUR">يورو (EUR)</option>
           </select>
         </div>
@@ -509,6 +510,7 @@
           <select id="calcTo" onchange="calcConvert()">
             <option value="USD">دولار (USD)</option>
             <option value="SAR">ريال سعودي (SAR)</option>
+            <option value="EGP">جنيه مصري (EGP)</option>
             <option value="EUR">يورو (EUR)</option>
           </select>
         </div>
@@ -618,7 +620,7 @@
 let transactions = JSON.parse(localStorage.getItem('masarefy_tx') || '[]');
 let currentType = 'buy';
 let currentFilter = 'all';
-let rates = { USD: 3.75, SAR: 1, EUR: 4.1, GOLD_GRAM: 450, EGP: 0.085 }; // EGP = how many SAR per 1 EGP
+let rates = { USD: 50, SAR: 13.3, EUR: 54, GOLD_GRAM: 4800, SAR_TO_EGP: 13.3 };
 let ratesLoaded = false;
 
 // ==================== INIT ====================
@@ -640,17 +642,17 @@ async function fetchRates() {
   document.getElementById('ratesContainer').innerHTML = '<div class="loading-rates"><div class="spinner"></div>جاري جلب الأسعار...</div>';
   try {
     // Using exchangerate-api free tier
-    const res = await fetch('https://api.exchangerate-api.com/v4/latest/SAR');
+    const res = await fetch('https://api.exchangerate-api.com/v4/latest/EGP');
     if (!res.ok) throw new Error();
     const data = await res.json();
     
     
-    rates.USD = +(1 / data.rates.USD).toFixed(4); // 1 USD in SAR
-    rates.SAR = 1;
-    rates.EUR = +(data.rates.EUR / data.rates.SAR).toFixed(4); // 1 EUR = ? SAR
-    // EGP: how many SAR = 1 EGP? → data.rates.EGP SAR per 1 SAR ... actually data is SAR base
-    // data.rates.EGP = how many EGP per 1 SAR
-    rates.EGP = +data.rates.EGP.toFixed(4); // 1 SAR = ? EGP
+    rates.USD = +(1 / data.rates.USD).toFixed(2);   // 1 USD = ? EGP
+    rates.SAR = +(1 / data.rates.SAR).toFixed(2);   // 1 SAR = ? EGP
+    rates.SAR_TO_EGP = rates.SAR;
+    
+    rates.EUR = +(1 / data.rates.EUR).toFixed(2);   // 1 EUR = ? EGP
+
     ratesLoaded = true;
 
     // Gold: try goldapi or fallback
@@ -660,8 +662,8 @@ async function fetchRates() {
       const goldData = await goldRes.json();
       // price in USD per troy oz → convert to SAR per gram
       const ozPriceUSD = goldData.price;
-      const gramPriceSAR = (ozPriceUSD / 31.1035) * rates.USD;
-      rates.GOLD_GRAM = +gramPriceSAR.toFixed(2);
+      const gramPriceEGP = (ozPriceUSD / 31.1035) * rates.USD;
+      rates.GOLD_GRAM = +gramPriceEGP.toFixed(0);
     } catch(_) {
       // fallback: keep last or estimated
     }
@@ -684,29 +686,29 @@ function renderRatesCards(fallback = false) {
         <div class="rate-flag">🇺🇸</div>
         <div class="rate-name">دولار أمريكي</div>
         <div class="rate-value usd">${rates.USD.toFixed(2)}</div>
-        <div class="rate-sub">ريال للدولار الواحد</div>
+        <div class="rate-sub">جنيه للدولار الواحد</div>
         ${fallback ? '' : '<span class="rate-change up">↑ مباشر</span>'}
       </div>
       <div class="rate-card sar">
         <div class="rate-flag">🇸🇦</div>
         <div class="rate-name">ريال سعودي</div>
         <div class="rate-value sar">${rates.SAR.toFixed(2)}</div>
-        <div class="rate-sub">العملة الأساسية</div>
+        <div class="rate-sub">جنيه للريال الواحد</div>
         ${fallback ? '' : '<span class="rate-change up">↑ مباشر</span>'}
       </div>
       <div class="rate-card eur">
         <div class="rate-flag">🇪🇺</div>
         <div class="rate-name">يورو أوروبي</div>
         <div class="rate-value eur">${rates.EUR.toFixed(2)}</div>
-        <div class="rate-sub">ريال لليورو الواحد</div>
+        <div class="rate-sub">جنيه لليورو الواحد</div>
         ${fallback ? '' : '<span class="rate-change up">↑ مباشر</span>'}
       </div>
       <div class="rate-card gold">
         <div class="rate-flag">🥇</div>
         <div class="rate-name">ذهب (جرام عيار 24)</div>
         <div class="rate-value gold">${rates.GOLD_GRAM.toLocaleString('ar-EG')}</div>
-        <div class="rate-sub">ريال للجرام</div>
-        <div style="font-size:0.72rem; color:var(--muted); margin-top:4px">عيار 21 ≈ ${Math.round(rates.GOLD_GRAM * 0.875).toLocaleString('ar-EG')} ر.س</div>
+        <div class="rate-sub">جنيه للجرام</div>
+        <div style="font-size:0.72rem; color:var(--muted); margin-top:4px">عيار 21 ≈ ${Math.round(rates.GOLD_GRAM * 0.875).toLocaleString('ar-EG')} ج.م</div>
       </div>
     </div>
     ${fallback ? '<p style="text-align:center;font-size:0.78rem;color:var(--muted);margin-top:-0.5rem">الأسعار تقديرية • اضغط تحديث للحصول على أسعار حقيقية</p>' : ''}
@@ -721,9 +723,9 @@ function calcConvert() {
   const to = document.getElementById('calcTo').value;
   if (!amt) { document.getElementById('calcResult').textContent = ''; return; }
 
-  const rateMap = { SAR: 1, USD: rates.USD, EUR: rates.EUR };
-  const inSAR = amt * rateMap[from];
-  const result = inSAR / rateMap[to];
+  const rateMap = { EGP: 1, USD: rates.USD, SAR: rates.SAR, EUR: rates.EUR };
+  const inEGP = amt * rateMap[from];
+  const result = inEGP / rateMap[to];
   const fmt = n => n.toLocaleString('ar-EG', { maximumFractionDigits: 2 });
   document.getElementById('calcResult').textContent = `${fmt(amt)} ${from} = ${fmt(result)} ${to}`;
 }
@@ -839,15 +841,15 @@ function renderSummary() {
   document.getElementById('summaryGrid').innerHTML = `
     <div class="summary-card">
       <div class="summary-label">💸 إجمالي المصاريف</div>
-      <div class="summary-value expense">${fmt(totalBuy)} ر.س</div>
+      <div class="summary-value expense">${fmt(totalBuy)} ج.م</div>
     </div>
     <div class="summary-card">
       <div class="summary-label">💰 إجمالي الإيرادات</div>
-      <div class="summary-value income">${fmt(totalSell)} ر.س</div>
+      <div class="summary-value income">${fmt(totalSell)} ج.م</div>
     </div>
     <div class="summary-card">
       <div class="summary-label">${net >= 0 ? '✅' : '⚠️'} الصافي</div>
-      <div class="summary-value net" style="color:${net >= 0 ? 'var(--green)' : 'var(--red)'}">${net >= 0 ? '+' : '-'}${fmt(net)} ر.س</div>
+      <div class="summary-value net" style="color:${net >= 0 ? 'var(--green)' : 'var(--red)'}">${net >= 0 ? '+' : '-'}${fmt(net)} ج.م</div>
     </div>
     <div class="summary-card">
       <div class="summary-label">📝 عدد المعاملات</div>
@@ -877,7 +879,7 @@ function renderStats() {
     <div class="cat-row">
       <span>${cat}</span>
       <div class="cat-bar-wrap"><div class="cat-bar" style="width:${(amt/max*100).toFixed(0)}%"></div></div>
-      <span style="color:var(--red);font-weight:700">${fmt(amt)} ر.س</span>
+      <div style="text-align:left"><span style="color:var(--red);font-weight:700">${fmt(amt)} ر.س</span><div style="font-size:0.7rem;color:var(--muted)">≈ ${fmt(amt * rates.SAR_TO_EGP)} ج.م</div></div>
     </div>
   `).join('') : '<div style="color:var(--muted);font-size:0.85rem">لا يوجد بيانات</div>';
 
@@ -889,11 +891,11 @@ function renderStats() {
     monthly[m][t.type] += t.amount;
   });
   const monthRows = Object.entries(monthly).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,6).map(([m, v]) => `
-    <div class="cat-row">
-      <span style="color:var(--muted)">${m}</span>
-      <span style="color:var(--red)">-${fmt(v.buy)} ر.س</span>
-      <span style="color:var(--green)">+${fmt(v.sell)} ر.س</span>
-      <span style="color:${v.sell-v.buy>=0?'var(--green)':'var(--red)'}; font-weight:700">${v.sell-v.buy>=0?'+':''}${fmt(v.sell-v.buy)} ر.س</span>
+    <div class="cat-row" style="flex-wrap:wrap;gap:4px">
+      <span style="color:var(--muted);min-width:70px">${m}</span>
+      <div><span style="color:var(--red)">-${fmt(v.buy)} ر.س</span><div style="font-size:0.7rem;color:var(--muted)">≈ ${fmt(v.buy * rates.SAR_TO_EGP)} ج.م</div></div>
+      <div><span style="color:var(--green)">+${fmt(v.sell)} ر.س</span><div style="font-size:0.7rem;color:var(--muted)">≈ ${fmt(v.sell * rates.SAR_TO_EGP)} ج.م</div></div>
+      <div><span style="color:${v.sell-v.buy>=0?'var(--green)':'var(--red)'};font-weight:700">${v.sell-v.buy>=0?'+':''}${fmt(v.sell-v.buy)} ر.س</span><div style="font-size:0.7rem;color:var(--muted)">≈ ${fmt(Math.abs(v.sell-v.buy) * rates.SAR_TO_EGP)} ج.م</div></div>
     </div>
   `).join('') || '<div style="color:var(--muted);font-size:0.85rem">لا يوجد بيانات</div>';
 
@@ -908,12 +910,12 @@ function renderStats() {
     </div>
     <div class="stats-card">
       <h3>📊 نظرة عامة</h3>
-      <div class="cat-row"><span>إجمالي المصاريف</span><span style="color:var(--red);font-weight:700">${fmt(totalBuy)} ر.س</span></div>
-      <div class="cat-row"><span>إجمالي الإيرادات</span><span style="color:var(--green);font-weight:700">${fmt(totalSell)} ر.س</span></div>
-      <div class="cat-row"><span>الصافي</span><span style="color:var(--gold);font-weight:700">${totalSell-totalBuy>=0?'+':''}${fmt(totalSell-totalBuy)} ر.س</span></div>
+      <div class="cat-row"><span>إجمالي المصاريف</span><div style="text-align:left"><span style="color:var(--red);font-weight:700">${fmt(totalBuy)} ر.س</span><div style="font-size:0.72rem;color:var(--muted)">≈ ${fmt(totalBuy * rates.SAR_TO_EGP)} ج.م</div></div></div>
+      <div class="cat-row"><span>إجمالي الإيرادات</span><div style="text-align:left"><span style="color:var(--green);font-weight:700">${fmt(totalSell)} ر.س</span><div style="font-size:0.72rem;color:var(--muted)">≈ ${fmt(totalSell * rates.SAR_TO_EGP)} ج.م</div></div></div>
+      <div class="cat-row"><span>الصافي</span><div style="text-align:left"><span style="color:var(--gold);font-weight:700">${totalSell-totalBuy>=0?'+':''}${fmt(totalSell-totalBuy)} ر.س</span><div style="font-size:0.72rem;color:var(--muted)">≈ ${totalSell-totalBuy>=0?'+':''}${fmt(Math.abs(totalSell-totalBuy) * rates.SAR_TO_EGP)} ج.م</div></div></div>
       <div class="cat-row"><span>عدد المشتريات</span><span>${transactions.filter(t=>t.type==='buy').length}</span></div>
       <div class="cat-row"><span>عدد المبيعات</span><span>${transactions.filter(t=>t.type==='sell').length}</span></div>
-      <div class="cat-row"><span>متوسط المعاملة</span><span>${fmt(transactions.length ? (totalBuy+totalSell)/transactions.length : 0)} ر.س</span></div>
+      <div class="cat-row"><span>متوسط المعاملة</span><div style="text-align:left"><span>${fmt(transactions.length ? (totalBuy+totalSell)/transactions.length : 0)} ر.س</span><div style="font-size:0.72rem;color:var(--muted)">≈ ${fmt(transactions.length ? (totalBuy+totalSell)/transactions.length * rates.SAR_TO_EGP : 0)} ج.م</div></div></div>
     </div>
   `;
 }
