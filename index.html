@@ -618,7 +618,7 @@
 let transactions = JSON.parse(localStorage.getItem('masarefy_tx') || '[]');
 let currentType = 'buy';
 let currentFilter = 'all';
-let rates = { USD: 3.75, SAR: 1, EUR: 4.1, GOLD_GRAM: 450 };
+let rates = { USD: 3.75, SAR: 1, EUR: 4.1, GOLD_GRAM: 450, EGP: 0.085 }; // EGP = how many SAR per 1 EGP
 let ratesLoaded = false;
 
 // ==================== INIT ====================
@@ -648,6 +648,9 @@ async function fetchRates() {
     rates.USD = +(1 / data.rates.USD).toFixed(4); // 1 USD in SAR
     rates.SAR = 1;
     rates.EUR = +(data.rates.EUR / data.rates.SAR).toFixed(4); // 1 EUR = ? SAR
+    // EGP: how many SAR = 1 EGP? → data.rates.EGP SAR per 1 SAR ... actually data is SAR base
+    // data.rates.EGP = how many EGP per 1 SAR
+    rates.EGP = +data.rates.EGP.toFixed(4); // 1 SAR = ? EGP
     ratesLoaded = true;
 
     // Gold: try goldapi or fallback
@@ -817,7 +820,10 @@ function renderTransactions() {
       <td><span class="tag ${t.type}">${t.type === 'buy' ? '🛒 شراء' : '💰 بيع'}</span></td>
       <td style="font-weight:600">${t.desc}</td>
       <td><span class="cat-badge">${t.cat}</span></td>
-      <td class="${t.type === 'buy' ? 'amount-buy' : 'amount-sell'}">${fmt(t.amount)} ر.س</td>
+      <td class="${t.type === 'buy' ? 'amount-buy' : 'amount-sell'}">
+        ${fmt(t.amount)} ر.س
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px">≈ ${fmt(t.amount * rates.EGP)} ج.م</div>
+      </td>
       <td style="color:var(--muted)">${t.rate}</td>
       <td style="color:var(--muted)">${t.qty}</td>
       <td style="color:var(--muted)">${fmtDate(t.date)}</td>
@@ -837,14 +843,17 @@ function renderSummary() {
     <div class="summary-card">
       <div class="summary-label">💸 إجمالي المصاريف</div>
       <div class="summary-value expense">${fmt(totalBuy)} ر.س</div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-top:2px">≈ ${fmt(totalBuy * rates.EGP)} ج.م</div>
     </div>
     <div class="summary-card">
       <div class="summary-label">💰 إجمالي الإيرادات</div>
       <div class="summary-value income">${fmt(totalSell)} ر.س</div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-top:2px">≈ ${fmt(totalSell * rates.EGP)} ج.م</div>
     </div>
     <div class="summary-card">
       <div class="summary-label">${net >= 0 ? '✅' : '⚠️'} الصافي</div>
       <div class="summary-value net" style="color:${net >= 0 ? 'var(--green)' : 'var(--red)'}">${net >= 0 ? '+' : '-'}${fmt(net)} ر.س</div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-top:2px">≈ ${net >= 0 ? '+' : '-'}${fmt(Math.abs(net) * rates.EGP)} ج.م</div>
     </div>
     <div class="summary-card">
       <div class="summary-label">📝 عدد المعاملات</div>
