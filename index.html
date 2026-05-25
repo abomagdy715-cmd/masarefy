@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مصاريفي</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f1e;
+    --bg2: #0f1628;
+    --bg3: #151e38;
+    --card: #111827;
+    --border: rgba(255,255,255,0.07);
+    --gold: #f0c040;
+    --gold2: #e6a817;
+    --blue: #3b82f6;
+    --green: #22c55e;
+    --red: #ef4444;
+    --text: #f1f5f9;
+    --muted: #64748b;
+    --accent: #6366f1;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    direction: rtl;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+  .logo {
+    font-size: 1.4rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--gold), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  .logo span { font-weight: 300; }
+  .header-date {
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* NAV TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg3);
+    padding: 4px;
+    border-radius: 12px;
+  }
+  .tab {
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all .2s;
+    font-weight: 500;
+  }
+  .tab.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 0 12px rgba(99,102,241,0.4);
+  }
+  .tab:hover:not(.active) { color: var(--text); background: var(--border); }
+
+  /* MAIN */
+  main { padding: 1.5rem 2rem; max-width: 1300px; margin: 0 auto; }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* RATES GRID */
+  .rates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .rate-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.2rem 1.4rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s, border-color .2s;
+  }
+  .rate-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); }
+  .rate-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    filter: blur(30px);
+    opacity: 0.15;
+  }
+  .rate-card.gold::before { background: var(--gold); }
+  .rate-card.usd::before { background: var(--green); }
+  .rate-card.sar::before { background: var(--blue); }
+  .rate-card.eur::before { background: var(--accent); }
+
+  .rate-flag { font-size: 1.6rem; margin-bottom: 0.5rem; }
+  .rate-name { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.2rem; }
+  .rate-value { font-size: 1.8rem; font-weight: 700; line-height: 1; }
+  .rate-value.gold { color: var(--gold); }
+  .rate-value.usd { color: var(--green); }
+  .rate-value.sar { color: #60a5fa; }
+  .rate-value.eur { color: #a78bfa; }
+  .rate-sub { font-size: 0.75rem; color: var(--muted); margin-top: 0.3rem; }
+  .rate-change {
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+  .rate-change.up { background: rgba(34,197,94,0.12); color: var(--green); }
+  .rate-change.down { background: rgba(239,68,68,0.12); color: var(--red); }
+  .last-update { font-size: 0.7rem; color: var(--muted); margin-bottom: 1rem; text-align: center; }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* SUMMARY CARDS */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .summary-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1rem 1.2rem;
+  }
+  .summary-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.4rem; }
+  .summary-value { font-size: 1.5rem; font-weight: 700; }
+  .summary-value.income { color: var(--green); }
+  .summary-value.expense { color: var(--red); }
+  .summary-value.net { color: var(--gold); }
+
+  /* ADD TRANSACTION */
+  .add-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.4rem;
+    margin-bottom: 1.5rem;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 0.8rem;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 0.78rem; color: var(--muted); }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.55rem 0.9rem;
+    color: var(--text);
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color .2s;
+    direction: rtl;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  }
+  .form-group select option { background: var(--bg2); }
+  .form-group textarea { resize: vertical; min-height: 60px; }
+
+  .type-toggle {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1rem;
+  }
+  .type-btn {
+    flex: 1;
+    padding: 0.55rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all .2s;
+    font-weight: 600;
+  }
+  .type-btn.buy.active { background: rgba(239,68,68,0.15); border-color: var(--red); color: var(--red); }
+  .type-btn.sell.active { background: rgba(34,197,94,0.15); border-color: var(--green); color: var(--green); }
+  .type-btn:hover:not(.active) { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+  .btn-add {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, var(--accent), #4f46e5);
+    color: #fff;
+    font-family: 'Cairo', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+    box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+  }
+  .btn-add:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,0.4); }
+  .btn-add:active { transform: scale(0.98); }
+
+  /* TRANSACTIONS TABLE */
+  .transactions-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .trans-filters {
+    padding: 1rem 1.2rem;
+    display: flex;
+    gap: 0.6rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-btn {
+    padding: 0.3rem 0.9rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .filter-input {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.3rem 0.8rem;
+    color: var(--text);
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    margin-right: auto;
+    direction: rtl;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    padding: 0.8rem 1.2rem;
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-weight: 600;
+    background: var(--bg2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  tbody tr {
+    border-top: 1px solid var(--border);
+    transition: background .15s;
+  }
+  tbody tr:hover { background: rgba(255,255,255,0.03); }
+  tbody td {
+    padding: 0.9rem 1.2rem;
+    font-size: 0.88rem;
+    vertical-align: middle;
+  }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .tag.buy { background: rgba(239,68,68,0.12); color: var(--red); }
+  .tag.sell { background: rgba(34,197,94,0.12); color: var(--green); }
+  .amount-buy { color: var(--red); font-weight: 700; }
+  .amount-sell { color: var(--green); font-weight: 700; }
+  .del-btn {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2);
+    color: var(--red);
+    border-radius: 8px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all .2s;
+    font-family: 'Cairo', sans-serif;
+  }
+  .del-btn:hover { background: rgba(239,68,68,0.25); }
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.3; }
+
+  /* CATEGORY BADGES */
+  .cat-badge {
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    background: rgba(99,102,241,0.12);
+    color: var(--accent);
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--accent);
+    color: #fff;
+    padding: 0.7rem 1.5rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    z-index: 9999;
+    transition: transform .3s ease;
+    box-shadow: 0 4px 20px rgba(99,102,241,0.4);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.green { background: #166534; }
+  .toast.red-toast { background: #7f1d1d; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    main { padding: 1rem; }
+    header { padding: 0.8rem 1rem; flex-wrap: wrap; gap: 0.5rem; }
+    .tabs { width: 100%; justify-content: center; }
+    table { font-size: 0.78rem; }
+    thead th, tbody td { padding: 0.6rem 0.7rem; }
+  }
+
+  /* STATS PAGE */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .stats-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.4rem;
+  }
+  .stats-card h3 { font-size: 0.85rem; color: var(--muted); margin-bottom: 1rem; font-weight: 500; }
+  .cat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.88rem;
+  }
+  .cat-row:last-child { border-bottom: none; }
+  .cat-bar-wrap { flex: 1; margin: 0 1rem; height: 4px; background: var(--border); border-radius: 2px; }
+  .cat-bar { height: 100%; border-radius: 2px; background: var(--accent); }
+
+  .loading-rates {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .spinner {
+    width: 24px; height: 24px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 0.5rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .refresh-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-family: 'Cairo', sans-serif;
+    transition: all .2s;
+  }
+  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* profit calc */
+  .profit-row {
+    display: flex;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+    align-items: center;
+  }
+  .profit-row:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">مصاريفي<span>.</span></div>
+  <div class="header-date" id="headerDate"></div>
+  <nav class="tabs">
+    <button class="tab active" onclick="switchPage('rates')">📊 الأسعار</button>
+    <button class="tab" onclick="switchPage('tracker')">💸 المصاريف</button>
+    <button class="tab" onclick="switchPage('stats')">📈 التقرير</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ===== PAGE: RATES ===== -->
+  <div id="page-rates" class="page active">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+      <div class="section-title" style="margin:0; flex:1">أسعار العملات والذهب</div>
+      <button class="refresh-btn" onclick="fetchRates()">🔄 تحديث</button>
+    </div>
+    <p class="last-update" id="lastUpdate">جاري تحديث الأسعار...</p>
+    <div id="ratesContainer">
+      <div class="loading-rates"><div class="spinner"></div>جاري جلب الأسعار الحقيقية...</div>
+    </div>
+
+    <div class="section-title" style="margin-top:1.5rem">حاسبة التحويل</div>
+    <div class="add-section" style="padding:1.2rem">
+      <div class="form-row">
+        <div class="form-group">
+          <label>المبلغ</label>
+          <input type="number" id="calcAmt" placeholder="أدخل المبلغ" oninput="calcConvert()">
+        </div>
+        <div class="form-group">
+          <label>من</label>
+          <select id="calcFrom" onchange="calcConvert()">
+            <option value="EGP">جنيه مصري (EGP)</option>
+            <option value="USD">دولار (USD)</option>
+            <option value="SAR">ريال سعودي (SAR)</option>
+            <option value="EUR">يورو (EUR)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>إلى</label>
+          <select id="calcTo" onchange="calcConvert()">
+            <option value="USD">دولار (USD)</option>
+            <option value="EGP">جنيه مصري (EGP)</option>
+            <option value="SAR">ريال سعودي (SAR)</option>
+            <option value="EUR">يورو (EUR)</option>
+          </select>
+        </div>
+      </div>
+      <div id="calcResult" style="text-align:center; font-size:1.3rem; font-weight:700; color:var(--gold); padding:0.5rem 0;"></div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: TRACKER ===== -->
+  <div id="page-tracker" class="page">
+
+    <div class="summary-grid" id="summaryGrid"></div>
+
+    <div class="section-title">إضافة معاملة جديدة</div>
+    <div class="add-section">
+      <div class="type-toggle">
+        <button class="type-btn buy active" id="btnBuy" onclick="setType('buy')">🛒 اشتريت / صرفت</button>
+        <button class="type-btn sell" id="btnSell" onclick="setType('sell')">💰 بعت / استلمت</button>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>اسم الحاجة / الوصف</label>
+          <input type="text" id="txDesc" placeholder="مثال: دولار، ذهب، أكل...">
+        </div>
+        <div class="form-group">
+          <label>الفئة</label>
+          <select id="txCat">
+            <option value="عملة">💱 عملة</option>
+            <option value="ذهب">🥇 ذهب</option>
+            <option value="أكل وشرب">🍔 أكل وشرب</option>
+            <option value="مواصلات">🚗 مواصلات</option>
+            <option value="ملابس">👕 ملابس</option>
+            <option value="فواتير">💡 فواتير</option>
+            <option value="صحة">🏥 صحة</option>
+            <option value="ترفيه">🎮 ترفيه</option>
+            <option value="أخرى">📦 أخرى</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>المبلغ (جنيه)</label>
+          <input type="number" id="txAmount" placeholder="0.00" min="0">
+        </div>
+        <div class="form-group">
+          <label>السعر وقت الشراء</label>
+          <input type="number" id="txRate" placeholder="سعر الصرف مثلاً" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>الكمية / الوحدة</label>
+          <input type="text" id="txQty" placeholder="مثال: 100 دولار، 5 جرام...">
+        </div>
+        <div class="form-group">
+          <label>التاريخ</label>
+          <input type="date" id="txDate">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0.8rem">
+        <label>ملاحظات (اختياري)</label>
+        <textarea id="txNote" placeholder="أي تفاصيل تانية..."></textarea>
+      </div>
+      <button class="btn-add" onclick="addTransaction()">✅ إضافة المعاملة</button>
+    </div>
+
+    <div class="section-title">سجل المعاملات</div>
+    <div class="transactions-wrap">
+      <div class="trans-filters">
+        <button class="filter-btn active" onclick="setFilter('all', this)">الكل</button>
+        <button class="filter-btn" onclick="setFilter('buy', this)">مشتريات</button>
+        <button class="filter-btn" onclick="setFilter('sell', this)">مبيعات</button>
+        <input type="text" class="filter-input" id="searchInput" placeholder="🔍 ابحث..." oninput="renderTransactions()">
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>النوع</th>
+              <th>الوصف</th>
+              <th>الفئة</th>
+              <th>المبلغ</th>
+              <th>السعر</th>
+              <th>الكمية</th>
+              <th>التاريخ</th>
+              <th>ملاحظات</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="txBody"></tbody>
+        </table>
+        <div id="emptyState" class="empty-state" style="display:none">
+          <div class="empty-icon">📭</div>
+          <div>مفيش معاملات لحد دلوقتي</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: STATS ===== -->
+  <div id="page-stats" class="page">
+    <div class="stats-grid" id="statsContent"></div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== STATE ====================
+let transactions = JSON.parse(localStorage.getItem('masarefy_tx') || '[]');
+let currentType = 'buy';
+let currentFilter = 'all';
+let rates = { USD: 50, SAR: 13.3, EUR: 54, GOLD_GRAM: 4800 };
+let ratesLoaded = false;
+
+// ==================== INIT ====================
+document.getElementById('txDate').valueAsDate = new Date();
+updateHeaderDate();
+fetchRates();
+renderTransactions();
+renderSummary();
+renderStats();
+
+function updateHeaderDate() {
+  const now = new Date();
+  const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+  document.getElementById('headerDate').textContent = now.toLocaleDateString('ar-EG', opts);
+}
+
+// ==================== FETCH RATES ====================
+async function fetchRates() {
+  document.getElementById('ratesContainer').innerHTML = '<div class="loading-rates"><div class="spinner"></div>جاري جلب الأسعار...</div>';
+  try {
+    // Using exchangerate-api free tier
+    const res = await fetch('https://api.exchangerate-api.com/v4/latest/EGP');
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    // EGP as base, so 1 EGP = X foreign
+    // We want: 1 USD = ? EGP → 1 / data.rates.USD
+    rates.USD = +(1 / data.rates.USD).toFixed(2);
+    rates.SAR = +(1 / data.rates.SAR).toFixed(2);
+    rates.EUR = +(1 / data.rates.EUR).toFixed(2);
+    ratesLoaded = true;
+
+    // Gold: try goldapi or fallback
+    try {
+      // Using a CORS-friendly gold approximation via metals-api (free)
+      const goldRes = await fetch('https://api.gold-api.com/price/XAU');
+      const goldData = await goldRes.json();
+      // price in USD per troy oz → convert to EGP per gram
+      const ozPriceUSD = goldData.price;
+      const gramPriceEGP = (ozPriceUSD / 31.1035) * rates.USD;
+      rates.GOLD_GRAM = +gramPriceEGP.toFixed(0);
+    } catch(_) {
+      // fallback: keep last or estimated
+    }
+
+    renderRatesCards();
+    document.getElementById('lastUpdate').textContent = 'آخر تحديث: ' + new Date().toLocaleTimeString('ar-EG');
+  } catch(e) {
+    // Fallback to static estimates with disclaimer
+    document.getElementById('ratesContainer').innerHTML = '';
+    renderRatesCards(true);
+    document.getElementById('lastUpdate').textContent = '⚠️ تعذر الاتصال – الأسعار تقريبية';
+  }
+  calcConvert();
+}
+
+function renderRatesCards(fallback = false) {
+  const html = `
+    <div class="rates-grid">
+      <div class="rate-card usd">
+        <div class="rate-flag">🇺🇸</div>
+        <div class="rate-name">دولار أمريكي</div>
+        <div class="rate-value usd">${rates.USD.toFixed(2)}</div>
+        <div class="rate-sub">جنيه للدولار الواحد</div>
+        ${fallback ? '' : '<span class="rate-change up">↑ مباشر</span>'}
+      </div>
+      <div class="rate-card sar">
+        <div class="rate-flag">🇸🇦</div>
+        <div class="rate-name">ريال سعودي</div>
+        <div class="rate-value sar">${rates.SAR.toFixed(2)}</div>
+        <div class="rate-sub">جنيه للريال الواحد</div>
+        ${fallback ? '' : '<span class="rate-change up">↑ مباشر</span>'}
+      </div>
+      <div class="rate-card eur">
+        <div class="rate-flag">🇪🇺</div>
+        <div class="rate-name">يورو أوروبي</div>
+        <div class="rate-value eur">${rates.EUR.toFixed(2)}</div>
+        <div class="rate-sub">جنيه لليورو الواحد</div>
+        ${fallback ? '' : '<span class="rate-change up">↑ مباشر</span>'}
+      </div>
+      <div class="rate-card gold">
+        <div class="rate-flag">🥇</div>
+        <div class="rate-name">ذهب (جرام عيار 24)</div>
+        <div class="rate-value gold">${rates.GOLD_GRAM.toLocaleString('ar-EG')}</div>
+        <div class="rate-sub">جنيه للجرام</div>
+        <div style="font-size:0.72rem; color:var(--muted); margin-top:4px">عيار 21 ≈ ${Math.round(rates.GOLD_GRAM * 0.875).toLocaleString('ar-EG')} جنيه</div>
+      </div>
+    </div>
+    ${fallback ? '<p style="text-align:center;font-size:0.78rem;color:var(--muted);margin-top:-0.5rem">الأسعار تقديرية • اضغط تحديث للحصول على أسعار حقيقية</p>' : ''}
+  `;
+  document.getElementById('ratesContainer').innerHTML = html;
+}
+
+// ==================== CALCULATOR ====================
+function calcConvert() {
+  const amt = parseFloat(document.getElementById('calcAmt').value) || 0;
+  const from = document.getElementById('calcFrom').value;
+  const to = document.getElementById('calcTo').value;
+  if (!amt) { document.getElementById('calcResult').textContent = ''; return; }
+
+  const rateMap = { EGP: 1, USD: rates.USD, SAR: rates.SAR, EUR: rates.EUR };
+  const inEGP = amt * rateMap[from];
+  const result = inEGP / rateMap[to];
+  const fmt = n => n.toLocaleString('ar-EG', { maximumFractionDigits: 2 });
+  document.getElementById('calcResult').textContent = `${fmt(amt)} ${from} = ${fmt(result)} ${to}`;
+}
+
+// ==================== PAGES ====================
+function switchPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'stats') renderStats();
+}
+
+// ==================== TRANSACTIONS ====================
+function setType(t) {
+  currentType = t;
+  document.getElementById('btnBuy').classList.toggle('active', t === 'buy');
+  document.getElementById('btnSell').classList.toggle('active', t === 'sell');
+}
+
+function addTransaction() {
+  const desc = document.getElementById('txDesc').value.trim();
+  const amount = parseFloat(document.getElementById('txAmount').value);
+  if (!desc) { showToast('اكتب اسم الحاجة!', 'red-toast'); return; }
+  if (!amount || amount <= 0) { showToast('اكتب المبلغ!', 'red-toast'); return; }
+
+  const tx = {
+    id: Date.now(),
+    type: currentType,
+    desc,
+    cat: document.getElementById('txCat').value,
+    amount,
+    rate: document.getElementById('txRate').value || '-',
+    qty: document.getElementById('txQty').value || '-',
+    date: document.getElementById('txDate').value || new Date().toISOString().split('T')[0],
+    note: document.getElementById('txNote').value.trim()
+  };
+
+  transactions.unshift(tx);
+  save();
+  renderTransactions();
+  renderSummary();
+  clearForm();
+  showToast(currentType === 'buy' ? '✅ تم تسجيل المصروف' : '✅ تم تسجيل الإيراد', 'green');
+}
+
+function clearForm() {
+  ['txDesc','txAmount','txRate','txQty','txNote'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('txDate').valueAsDate = new Date();
+}
+
+function deleteTransaction(id) {
+  transactions = transactions.filter(t => t.id !== id);
+  save();
+  renderTransactions();
+  renderSummary();
+  showToast('تم الحذف', 'red-toast');
+}
+
+function save() {
+  localStorage.setItem('masarefy_tx', JSON.stringify(transactions));
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderTransactions();
+}
+
+function renderTransactions() {
+  const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  let list = transactions.filter(t => {
+    if (currentFilter !== 'all' && t.type !== currentFilter) return false;
+    if (search && !t.desc.toLowerCase().includes(search) && !t.cat.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  const body = document.getElementById('txBody');
+  const empty = document.getElementById('emptyState');
+
+  if (!list.length) {
+    body.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const fmt = n => (+n).toLocaleString('ar-EG', { maximumFractionDigits: 2 });
+  const fmtDate = d => new Date(d).toLocaleDateString('ar-EG', { year:'numeric', month:'short', day:'numeric' });
+
+  body.innerHTML = list.map(t => `
+    <tr>
+      <td><span class="tag ${t.type}">${t.type === 'buy' ? '🛒 شراء' : '💰 بيع'}</span></td>
+      <td style="font-weight:600">${t.desc}</td>
+      <td><span class="cat-badge">${t.cat}</span></td>
+      <td class="${t.type === 'buy' ? 'amount-buy' : 'amount-sell'}">${fmt(t.amount)} ج</td>
+      <td style="color:var(--muted)">${t.rate}</td>
+      <td style="color:var(--muted)">${t.qty}</td>
+      <td style="color:var(--muted)">${fmtDate(t.date)}</td>
+      <td style="color:var(--muted);max-width:120px;font-size:0.78rem">${t.note || '-'}</td>
+      <td><button class="del-btn" onclick="deleteTransaction(${t.id})">حذف</button></td>
+    </tr>
+  `).join('');
+}
+
+function renderSummary() {
+  const totalBuy = transactions.filter(t => t.type === 'buy').reduce((s, t) => s + t.amount, 0);
+  const totalSell = transactions.filter(t => t.type === 'sell').reduce((s, t) => s + t.amount, 0);
+  const net = totalSell - totalBuy;
+  const fmt = n => Math.abs(n).toLocaleString('ar-EG', { maximumFractionDigits: 0 });
+
+  document.getElementById('summaryGrid').innerHTML = `
+    <div class="summary-card">
+      <div class="summary-label">💸 إجمالي المصاريف</div>
+      <div class="summary-value expense">${fmt(totalBuy)} ج</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">💰 إجمالي الإيرادات</div>
+      <div class="summary-value income">${fmt(totalSell)} ج</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">${net >= 0 ? '✅' : '⚠️'} الصافي</div>
+      <div class="summary-value net" style="color:${net >= 0 ? 'var(--green)' : 'var(--red)'}">${net >= 0 ? '+' : '-'}${fmt(net)} ج</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">📝 عدد المعاملات</div>
+      <div class="summary-value" style="color:var(--accent)">${transactions.length}</div>
+    </div>
+  `;
+}
+
+// ==================== STATS ====================
+function renderStats() {
+  const catTotals = {};
+  let totalBuy = 0, totalSell = 0;
+  transactions.forEach(t => {
+    if (t.type === 'buy') {
+      catTotals[t.cat] = (catTotals[t.cat] || 0) + t.amount;
+      totalBuy += t.amount;
+    } else {
+      totalSell += t.amount;
+    }
+  });
+
+  const sorted = Object.entries(catTotals).sort((a,b) => b[1]-a[1]);
+  const fmt = n => (+n).toLocaleString('ar-EG', { maximumFractionDigits: 0 });
+  const max = sorted[0]?.[1] || 1;
+
+  const catHTML = sorted.length ? sorted.map(([cat, amt]) => `
+    <div class="cat-row">
+      <span>${cat}</span>
+      <div class="cat-bar-wrap"><div class="cat-bar" style="width:${(amt/max*100).toFixed(0)}%"></div></div>
+      <span style="color:var(--red);font-weight:700">${fmt(amt)} ج</span>
+    </div>
+  `).join('') : '<div style="color:var(--muted);font-size:0.85rem">لا يوجد بيانات</div>';
+
+  // Monthly
+  const monthly = {};
+  transactions.forEach(t => {
+    const m = t.date?.slice(0,7) || 'غير محدد';
+    if (!monthly[m]) monthly[m] = { buy: 0, sell: 0 };
+    monthly[m][t.type] += t.amount;
+  });
+  const monthRows = Object.entries(monthly).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,6).map(([m, v]) => `
+    <div class="cat-row">
+      <span style="color:var(--muted)">${m}</span>
+      <span style="color:var(--red)">-${fmt(v.buy)} ج</span>
+      <span style="color:var(--green)">+${fmt(v.sell)} ج</span>
+      <span style="color:${v.sell-v.buy>=0?'var(--green)':'var(--red)'}; font-weight:700">${v.sell-v.buy>=0?'+':''}${fmt(v.sell-v.buy)} ج</span>
+    </div>
+  `).join('') || '<div style="color:var(--muted);font-size:0.85rem">لا يوجد بيانات</div>';
+
+  document.getElementById('statsContent').innerHTML = `
+    <div class="stats-card">
+      <h3>🏆 المصاريف حسب الفئة</h3>
+      ${catHTML}
+    </div>
+    <div class="stats-card">
+      <h3>📅 ملخص شهري</h3>
+      ${monthRows}
+    </div>
+    <div class="stats-card">
+      <h3>📊 نظرة عامة</h3>
+      <div class="cat-row"><span>إجمالي المصاريف</span><span style="color:var(--red);font-weight:700">${fmt(totalBuy)} ج</span></div>
+      <div class="cat-row"><span>إجمالي الإيرادات</span><span style="color:var(--green);font-weight:700">${fmt(totalSell)} ج</span></div>
+      <div class="cat-row"><span>الصافي</span><span style="color:var(--gold);font-weight:700">${totalSell-totalBuy>=0?'+':''}${fmt(totalSell-totalBuy)} ج</span></div>
+      <div class="cat-row"><span>عدد المشتريات</span><span>${transactions.filter(t=>t.type==='buy').length}</span></div>
+      <div class="cat-row"><span>عدد المبيعات</span><span>${transactions.filter(t=>t.type==='sell').length}</span></div>
+      <div class="cat-row"><span>متوسط المعاملة</span><span>${fmt(transactions.length ? (totalBuy+totalSell)/transactions.length : 0)} ج</span></div>
+    </div>
+  `;
+}
+
+// ==================== TOAST ====================
+function showToast(msg, cls = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + cls;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
