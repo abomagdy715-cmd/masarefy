@@ -1,14 +1,13 @@
 {
-  "name": "مصاريفي",
-  "short_name": "مصاريفي",
-  "description": "تتبع مصاريفك وأسعار العملات والذهب",
-  "start_url": "/",
+  "name": "masarefy",
+  "short_name": "masarefy",
+  "description": "Track your expenses, currency rates and gold prices",
+  "start_url": "/masarefy/",
+  "scope": "/masarefy/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0a0f1e",
   "theme_color": "#f0c040",
-  "lang": "ar",
-  "dir": "rtl",
   "icons": [
     {
       "src": "icon-192.png",
