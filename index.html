@@ -640,44 +640,79 @@ function updateHeaderDate() {
 // ==================== FETCH RATES ====================
 async function fetchRates() {
   document.getElementById('ratesContainer').innerHTML = '<div class="loading-rates"><div class="spinner"></div>جاري جلب الأسعار...</div>';
-  try {
-    // Using exchangerate-api free tier
-    const res = await fetch('https://api.exchangerate-api.com/v4/latest/EGP');
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    
-    
-    rates.USD = +(1 / data.rates.USD).toFixed(2);   // 1 USD = ? EGP
-    rates.SAR = +(1 / data.rates.SAR).toFixed(2);   // 1 SAR = ? EGP
-    rates.SAR_TO_EGP = rates.SAR;
-    
-    rates.EUR = +(1 / data.rates.EUR).toFixed(2);   // 1 EUR = ? EGP
+  let success = false;
 
-    ratesLoaded = true;
-
-    // Gold: try goldapi or fallback
+  // API 1: fawazahmed0 - أحسن API مجاني بيتحدث يومياً
+  if (!success) {
     try {
-      // Using a CORS-friendly gold approximation via metals-api (free)
-      const goldRes = await fetch('https://api.gold-api.com/price/XAU');
+      const res = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/egp.json');
+      if (res.ok) {
+        const data = await res.json();
+        const r = data.egp;
+        rates.USD = +(1 / r.usd).toFixed(2);
+        rates.SAR = +(1 / r.sar).toFixed(2);
+        rates.SAR_TO_EGP = rates.SAR;
+        rates.EUR = +(1 / r.eur).toFixed(2);
+        ratesLoaded = true;
+        success = true;
+      }
+    } catch(_) {}
+  }
+
+  // API 2: exchangerate-api fallback
+  if (!success) {
+    try {
+      const res = await fetch('https://api.exchangerate-api.com/v4/latest/EGP');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.rates && data.rates.USD) {
+          rates.USD = +(1 / data.rates.USD).toFixed(2);
+          rates.SAR = +(1 / data.rates.SAR).toFixed(2);
+          rates.SAR_TO_EGP = rates.SAR;
+          rates.EUR = +(1 / data.rates.EUR).toFixed(2);
+          ratesLoaded = true;
+          success = true;
+        }
+      }
+    } catch(_) {}
+  }
+
+  // API 3: open.er-api fallback
+  if (!success) {
+    try {
+      const res = await fetch('https://open.er-api.com/v6/latest/EGP');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.rates && data.rates.USD) {
+          rates.USD = +(1 / data.rates.USD).toFixed(2);
+          rates.SAR = +(1 / data.rates.SAR).toFixed(2);
+          rates.SAR_TO_EGP = rates.SAR;
+          rates.EUR = +(1 / data.rates.EUR).toFixed(2);
+          ratesLoaded = true;
+          success = true;
+        }
+      }
+    } catch(_) {}
+  }
+
+  // Gold price
+  try {
+    const goldRes = await fetch('https://api.gold-api.com/price/XAU');
+    if (goldRes.ok) {
       const goldData = await goldRes.json();
-      // price in USD per troy oz → convert to SAR per gram
       const ozPriceUSD = goldData.price;
       const gramPriceEGP = (ozPriceUSD / 31.1035) * rates.USD;
       rates.GOLD_GRAM = +gramPriceEGP.toFixed(0);
-    } catch(_) {
-      // fallback: keep last or estimated
     }
+  } catch(_) {}
 
-    renderRatesCards();
-    document.getElementById('lastUpdate').textContent = 'آخر تحديث: ' + new Date().toLocaleTimeString('ar-EG');
-  } catch(e) {
-    // Fallback to static estimates with disclaimer
-    document.getElementById('ratesContainer').innerHTML = '';
-    renderRatesCards(true);
-    document.getElementById('lastUpdate').textContent = '⚠️ تعذر الاتصال – الأسعار تقريبية';
-  }
+  renderRatesCards(!success);
+  document.getElementById('lastUpdate').textContent = success
+    ? 'آخر تحديث: ' + new Date().toLocaleTimeString('ar-EG')
+    : '⚠️ تعذر الاتصال – الأسعار تقريبية';
   calcConvert();
 }
+
 
 function renderRatesCards(fallback = false) {
   const html = `
